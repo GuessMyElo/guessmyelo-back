@@ -4,6 +4,7 @@ const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const mysql = require("mysql");
 
 const app = express();
 const port = 5000;
