@@ -4,13 +4,13 @@ const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const mysql = require("mysql");
 
 const app = express();
 const port = 5000;
 const db = mysql.createPool({
     connectionLimit: 10,
-    host: "mysql",
-    port: "3306",
+    host: "localhost",
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
@@ -37,5 +37,8 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24 //1000 = 1 seconde
     }
 }));
+
+require("./tables/users")(app,db);
+require("./knex/buildDB")(app);
 
 app.listen(port, () => console.log(`Listen on port ${port}`));
