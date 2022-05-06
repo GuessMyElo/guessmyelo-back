@@ -9,10 +9,10 @@ module.exports = (app) => {
                 switch (tableName) {
                     case "users":
                         table.bigincrements("id");
-                        table.integer("twitch_id");
-                        table.integer("discord_id");
-                        table.string('username').unique().notNullable();
-                        table.string('email').unique().notNullable();
+                        table.json("twitch_id")
+                        table.json("discord_id")
+                        table.string('username', 191).unique().notNullable();
+                        table.string('email', 191).unique().notNullable();
                         table.string('password');
                         table.string('role').notNullable();
                         break;
