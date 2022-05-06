@@ -1,7 +1,6 @@
 const dotenv = require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const mysql = require("mysql");
@@ -23,7 +22,6 @@ app.use(cors({
     credentials: true
 }));
 app.use(cookieParser());
-app.use(fileUpload());
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.use(session({
@@ -38,7 +36,9 @@ app.use(session({
     }
 }));
 
+require("./tables/video")(app,db);
 require("./tables/users")(app,db);
 require("./knex/buildDB")(app);
+require("./cloudinary")(app);
 
 app.listen(port, () => console.log(`Listen on port ${port}`));

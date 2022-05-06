@@ -83,9 +83,10 @@ module.exports = (app, db) => {
                             connection.release();
 
                             if (!err) {
-                                res.json({ error: false, message: `L'utilisateur ${params.username} a été ajouté.` });
+                                token = jwt.sign()
+                                res.status(200).json({tmessage: `L'utilisateur ${params.username} a été ajouté.` });
                             } else {
-                                res.json({ error: true, message: "L'utilisateur n'a pas pu être ajouté." });
+                                res.status(502).json({errno : err.errno, err : err.sqlMessage, message: "L'utilisateur n'a pas pu être ajouté." });
                                 console.log(err);
                             }
                         })

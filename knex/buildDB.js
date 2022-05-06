@@ -9,12 +9,17 @@ module.exports = (app) => {
                 switch (tableName) {
                     case "users":
                         table.bigincrements("id");
-                        table.integer("twitch_id");
-                        table.integer("discord_id");
-                        table.string('username').notNullable();
-                        table.string('email').notNullable();
-                        table.string('password').notNullable();
+                        table.integer("twitch_id").unique();
+                        table.string('username').unique().notNullable();
+                        table.string('email').unique().notNullable();
+                        table.string('password');
                         table.string('role').notNullable();
+                        break;
+                    case "video":
+                        table.bigincrements("id");
+                        table.string("rank").notNullable();
+                        table.string("url").notNullable();
+                        table.integer("user_id").notNullable();
                         break;
                     default:
                         break;
