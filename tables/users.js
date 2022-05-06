@@ -5,8 +5,7 @@ module.exports = (app, db) => {
     const getParams = (req) => {
         return {
             username: req.body.username,
-            twitch_id: req.body.twitchID === "" ? null : req.body.twitchID,
-            discord_id: req.body.discordID === "" ? null : req.body.twitchID,
+            twitch_id: req.body.twitch_id === "" ? null : req.body.twitch_id,
             email: req.body.email,
             password: req.body.password,
             role: req.body.role
@@ -116,6 +115,7 @@ module.exports = (app, db) => {
                                     },
                                     process.env.JWT_SECRET
                                 );
+                                console.log("USER REGISTERED")
                                 res.status(200).json({tmessage: `L'utilisateur ${params.username} a été ajouté.`, accessToken });
                             } else {
                                 res.status(502).json({errno : err.errno, err : err.sqlMessage, message: "L'utilisateur n'a pas pu être ajouté." });
@@ -210,6 +210,7 @@ module.exports = (app, db) => {
                                         res.json({
                                             error: false,
                                             message: "Connexion réussie.",
+                                            user: result[0],
                                             accessToken,
                                         });
                                     } else {
