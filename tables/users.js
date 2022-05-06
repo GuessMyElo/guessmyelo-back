@@ -74,7 +74,15 @@ module.exports = (app, db) => {
                     connection.release();
 
                     if (!err) {
-                        res.send(result);
+                        const accessToken = jwt.sign(
+                            {
+                                id: result[0].id,
+                                username: result[0].username,
+                                role: result[0].role,
+                            },
+                            process.env.JWT_SECRET
+                        );
+                        res.send({user : result, accessToken});
                         console.log("Success.");
                     } else {
                         console.log(err);
