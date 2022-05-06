@@ -72,9 +72,17 @@ module.exports = (app, db) => {
             else {
                 connection.query('SELECT * FROM users WHERE email = ?', [req.params.email], (err, result) => {
                     connection.release();
+                    const accessToken = jwt.sign(
+                        {
+                            id: result[0].id,
+                            username: result[0].username,
+                            role: result[0].role,
+                        },
+                        process.env.JWT_SECRET
+                    );
 
                     if (!err) {
-                        res.send(result);
+                        res.send({user : result, accessToken});
                         console.log("Success.");
                     } else {
                         console.log(err);
