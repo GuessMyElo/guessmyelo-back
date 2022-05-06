@@ -82,7 +82,7 @@ module.exports = (app, db) => {
                             },
                             process.env.JWT_SECRET
                         );
-                        res.send({user : result, accessToken});
+                        res.send({user : result[0], accessToken});
                         console.log("Success.");
                     } else {
                         console.log(err.message);
