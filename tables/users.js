@@ -66,6 +66,24 @@ module.exports = (app, db) => {
         })
     })
 
+    app.get('/users/email/:email', (req, res) => {
+        db.getConnection((err, connection) => {
+            if (err) res.json({ error: true, err });
+            else {
+                connection.query('SELECT * FROM users WHERE email = ?', [req.params.email], (err, result) => {
+                    connection.release();
+
+                    if (!err) {
+                        res.send(result);
+                        console.log("Success.");
+                    } else {
+                        console.log(err);
+                    }
+                })
+            }
+        })
+    })
+
     app.post('/users/add', (req, res) => {
         db.getConnection((err, connection) => {
             if (err) {

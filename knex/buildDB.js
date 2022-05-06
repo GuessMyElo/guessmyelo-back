@@ -9,7 +9,8 @@ module.exports = (app) => {
                 switch (tableName) {
                     case "users":
                         table.bigincrements("id");
-                        table.integer("twitch_id").unique();
+                        table.integer("twitch_id");
+                        table.integer("discord_id");
                         table.string('username').unique().notNullable();
                         table.string('email').unique().notNullable();
                         table.string('password');
@@ -19,7 +20,7 @@ module.exports = (app) => {
                         table.bigincrements("id");
                         table.string("rank").notNullable();
                         table.string("url").notNullable();
-                        table.integer("user_id").notNullable();
+                        table.integer("userId").notNullable();
                         break;
                     default:
                         break;
@@ -27,7 +28,7 @@ module.exports = (app) => {
             })
             switch (tableName) {
                 case "users":
-                    await knex('users').insert(
+                    await knex('users').insert([
                         {
                             username: 'admin',
                             email: 'admin@admin.fr',
@@ -40,7 +41,7 @@ module.exports = (app) => {
                             password: '$2b$10$HEHC/d7GJlMpUCW/YOialu6PzUwBAhAgpmQxOdhByzc6PQ2tBwY/e', // user
                             role: 'user'
                         }
-                    );
+                    ]);
                     break;
                 default:
                     break;

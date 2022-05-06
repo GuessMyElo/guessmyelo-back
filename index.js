@@ -1,5 +1,6 @@
 const dotenv = require("dotenv").config();
 const express = require("express");
+const fileupload = require("express-fileupload");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
@@ -21,6 +22,8 @@ app.use(cors({
     methods: ["GET","POST", "DELETE", "PUT"],
     credentials: true
 }));
+app.use(fileupload());
+app.use(express.static("files"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
