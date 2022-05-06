@@ -5,8 +5,8 @@ module.exports = (app, db) => {
     const getParams = (req) => {
         return {
             username: req.body.username,
-            twitch_id: req.body.twitchID === "" ? null : req.body.twitchID,
-            discord_id: req.body.discordID === "" ? null : req.body.twitchID,
+            twitch_id: req.body.twitch_id === "" ? null : JSON.stringify(req.body.twitch_id),
+            discord_id: req.body.discord_id === "" ? null : JSON.stringify(req.body.discord_id),
             email: req.body.email,
             password: req.body.password,
             role: req.body.role
@@ -22,7 +22,7 @@ module.exports = (app, db) => {
                     if (!err) {
                         res.send(result);
                     } else {
-                        console.log(err);
+                        console.log(err.message);
                     }
                 })
             }
@@ -41,7 +41,7 @@ module.exports = (app, db) => {
                         console.log("Success.");
                     } else {
                         res.json({ error: true, message: "L'ID maximal n'a pas pu être récupéré." })
-                        console.log(err);
+                        console.log(err.message);
                     }
                 })
             }
@@ -59,7 +59,7 @@ module.exports = (app, db) => {
                         res.send(result);
                         console.log("Success.");
                     } else {
-                        console.log(err);
+                        console.log(err.message);
                     }
                 })
             }
@@ -85,7 +85,7 @@ module.exports = (app, db) => {
                         res.send({user : result, accessToken});
                         console.log("Success.");
                     } else {
-                        console.log(err);
+                        console.log(err.message);
                     }
                 })
             }
@@ -116,10 +116,10 @@ module.exports = (app, db) => {
                                     },
                                     process.env.JWT_SECRET
                                 );
-                                res.status(200).json({tmessage: `L'utilisateur ${params.username} a été ajouté.`, accessToken });
+                                res.status(200).json({tmessage: `L'utilisateur ${params.username} a été ajouté.`, accessToken, user: params });
                             } else {
                                 res.status(502).json({errno : err.errno, err : err.sqlMessage, message: "L'utilisateur n'a pas pu être ajouté." });
-                                console.log(err);
+                                console.log(err.message);
                             }
                         })
                     }
@@ -143,16 +143,16 @@ module.exports = (app, db) => {
                                 connection.query('ALTER TABLE users AUTO_INCREMENT = ?', [maxId], (err) => {
                                     connection.release()
                                     if (err) {
-                                        console.log(err);
+                                        console.log(err.message);
                                     }
                                 })
                             } else {
-                                console.log(err);
+                                console.log(err.message);
                             }
                         })
                     } else {
                         res.json({ error: true, message: `L'utilisateur ${[req.params.id]} n'a pas pu être supprimé.` })
-                        console.log(err);
+                        console.log(err.message);
                     }
                 })
             }
@@ -172,7 +172,7 @@ module.exports = (app, db) => {
                         res.json({ error: false, message: `L'utilisateur ${params.username} a été modifié.` });
                     } else {
                         res.json({ error: true, message: `L'utilisateur ${params.username} n'a pas été modifié.` })
-                        console.log(err);
+                        console.log(err.message);
                     }
                 })
             }
@@ -210,6 +210,7 @@ module.exports = (app, db) => {
                                         res.json({
                                             error: false,
                                             message: "Connexion réussie.",
+                                            user: result[0],
                                             accessToken,
                                         });
                                     } else {
@@ -227,7 +228,7 @@ module.exports = (app, db) => {
                             });
                         }
                     } else {
-                        console.log(err);
+                        console.log(err.message);
                     }
                 }
                 );
