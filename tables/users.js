@@ -76,15 +76,21 @@ module.exports = (app, db) => {
                 bcrypt.hash(params.password, parseInt(process.env.BCRYPT_SALT_ROUNDS), (err, hash) => {
                     if (err) {
                         res.json({ err });
-                        console.log(err);
                     } else {
                         params.password = hash;
-                        connection.query('INSERT INTO users SET ?', params, (err) => {
+                        connection.query('INSERT INTO users SET ?', params, (err, result) => {
                             connection.release();
 
                             if (!err) {
-                                token = jwt.sign()
-                                res.status(200).json({tmessage: `L'utilisateur ${params.username} a été ajouté.` });
+                                const accessToken = jwt.sign(
+                                    {
+                                        id : result.insertId,
+                                        username: params.username,
+                                        role: params.role,
+                                    },
+                                    process.env.JWT_SECRET
+                                );
+                                res.status(200).json({tmessage: `L'utilisateur ${params.username} a été ajouté.`, accessToken });
                             } else {
                                 res.status(502).json({errno : err.errno, err : err.sqlMessage, message: "L'utilisateur n'a pas pu être ajouté." });
                                 console.log(err);

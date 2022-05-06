@@ -11,9 +11,9 @@ cloudinary.config({
 
 module.exports = (app) => {
     app.post("/upload", (req, res) => {
-        const file = req;
-        console.log(req.files);
-        if(file === null) {
+        const file = req.files.file
+        console.log(file);
+        if(file === null || file === undefined) {
             res.status(400).send("Aucune vidéo n'a été envoyée.")
         } else {
             cloudinary.uploader.upload_stream({}, (err, result) => {
