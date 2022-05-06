@@ -6,7 +6,7 @@ module.exports = (app, db) => {
         return {
             rank : req.body.rank,
             url : req.body.url,
-            user_id : req.body.userID
+            userId : req.body.userId
         }
     }
 
@@ -19,25 +19,6 @@ module.exports = (app, db) => {
                     if (!err) {
                         res.send(result);
                     } else {
-                        console.log(err);
-                    }
-                })
-            }
-        })
-    })
-
-    app.get('/video/maxId', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('SELECT MAX(id) FROM video', (err, result) => {
-                    connection.release();
-                    if (!err) {
-                        const maxId = result[0]["MAX(id)"] === null ? 0 : result[0]["MAX(id)"];
-                        res.json({ error: false, maxId });
-                        console.log("Success.");
-                    } else {
-                        res.json({ error: true, message: "L'ID maximal n'a pas pu être récupéré." })
                         console.log(err);
                     }
                 })
@@ -70,22 +51,14 @@ module.exports = (app, db) => {
             } else {
                 let params = getParams(req);
 
-                bcrypt.hash(params.password, parseInt(process.env.BCRYPT_SALT_ROUNDS), (err, hash) => {
-                    if (err) {
-                        res.json({ err });
-                        console.log(err);
-                    } else {
-                        params.password = hash;
-                        connection.query('INSERT INTO video SET ?', params, (err) => {
-                            connection.release();
+                connection.query('INSERT INTO video SET ?', params, (err) => {
+                    connection.release();
 
-                            if (!err) {
-                                res.json({ error: false, message: `La vidéo ${params.username} a été ajoutée.` });
-                            } else {
-                                res.json({ error: true, message: "La vidéo n'a pas pu être ajoutée." });
-                                console.log(err);
-                            }
-                        })
+                    if (!err) {
+                        res.json({ error: false, message: `La vidéo a été ajoutée.` });
+                    } else {
+                        res.json({ error: true, message: "La vidéo n'a pas pu être ajoutée." });
+                        console.log(err);
                     }
                 })
             }

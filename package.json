@@ -32,6 +32,10 @@
     "jsonwebtoken": "^8.5.1",
     "knex": "^1.0.3",
     "mysql": "^2.18.1",
+    "node-fetch": "^2.6.7",
     "nodemon": "^2.0.16"
+  },
+  "devDependencies": {
+    "form-data": "^4.0.0"
   }
 }
