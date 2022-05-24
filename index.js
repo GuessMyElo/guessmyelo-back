@@ -5,8 +5,22 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const mysql = require("mysql");
+const http = require("http")
 
 const app = express();
+
+const { Server } = require("socket.io");
+
+const server= http.createServer(app);
+const io = new Server(server);
+
+  io.on('connection', (socket) => {
+    console.log('a user connected');
+  });
+
+
+
+
 const port = 5000;
 const db = mysql.createPool({
     connectionLimit: 10,
@@ -45,4 +59,4 @@ require("./tables/rooms")(app,db);
 require("./knex/buildDB")(app);
 require("./cloudinary")(app);
 
-app.listen(port, () => console.log(`Listen on port ${port}`));
+server.listen(port, () => console.log(`Listen on port ${port}`));
