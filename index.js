@@ -42,6 +42,6 @@ app.use(session({
 require("./tables/video")(app,db);
 require("./tables/users")(app,db);
 require("./knex/buildDB")(app);
-require("./cloudinary")(app);
+require("./cloudinary")(app, db);
 
 app.listen(port, () => console.log(`Listen on port ${port}`));

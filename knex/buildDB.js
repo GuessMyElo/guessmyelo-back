@@ -15,12 +15,16 @@ module.exports = (app) => {
                         table.string('email', 191).unique().notNullable();
                         table.string('password');
                         table.string('role').notNullable();
+                        table.string('imageUrl');
                         break;
                     case "video":
                         table.bigincrements("id");
                         table.string("rank").notNullable();
                         table.string("url").notNullable();
                         table.integer("userId").notNullable();
+                        table.string("public_id").notNullable();
+                        table.string("status").notNullable();
+                        table.string("game").notNullable();
                         break;
                     default:
                         break;

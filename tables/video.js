@@ -1,12 +1,12 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-
 module.exports = (app, db) => {
     const getParams = (req) => {
         return {
             rank : req.body.rank,
             url : req.body.url,
-            userId : req.body.userId
+            userId : req.body.userId,
+            public_id : req.body.public_id,
+            status : req.body.status,
+            game : req.body.game
         }
     }
 
@@ -15,6 +15,22 @@ module.exports = (app, db) => {
             if (err) res.json({ error: true, err });
             else {
                 connection.query('SELECT * FROM video', (err, result) => {
+                    connection.release();
+                    if (!err) {
+                        res.send(result);
+                    } else {
+                        console.log(err);
+                    }
+                })
+            }
+        })
+    })
+    
+    app.get('/video/notverified', (req, res) => {
+        db.getConnection((err, connection) => {
+            if (err) res.json({ error: true, err });
+            else {
+                connection.query('SELECT * FROM video WHERE status="not verified"', (err, result) => {
                     connection.release();
                     if (!err) {
                         res.send(result);
@@ -49,7 +65,7 @@ module.exports = (app, db) => {
             if (err) {
                 res.json({ error: true, err });
             } else {
-                let params = getParams(req);
+                const params = getParams(req);
 
                 connection.query('INSERT INTO video SET ?', params, (err) => {
                     connection.release();
@@ -71,10 +87,10 @@ module.exports = (app, db) => {
             else {
                 connection.query('DELETE FROM video WHERE id = ?', [req.params.id], (err) => {
                     if (!err) {
-                        res.json({ error: false, message: `La vidéo ${[req.params.id]} a été supprimé.` });
+                        res.json({ error: false, message: `La vidéo ${req.params.id} a été supprimé.` });
                         connection.release();
                     } else {
-                        res.json({ error: true, message: `La vidéo ${[req.params.id]} n'a pas pu être supprimée.` })
+                        res.json({ error: true, message: `La vidéo ${req.params.id} n'a pas pu être supprimée.` })
                         console.log(err);
                     }
                 })
@@ -92,9 +108,9 @@ module.exports = (app, db) => {
                     connection.release()
 
                     if (!err) {
-                        res.json({ error: false, message: `La vidéo ${params.username} a été modifiée.` });
+                        res.json({ error: false, message: `La vidéo ${req.params.id} a été modifiée.` });
                     } else {
-                        res.json({ error: true, message: `La vidéo ${params.username} n'a pas été modifiée.` })
+                        res.json({ error: true, message: `La vidéo ${req.params.id} n'a pas été modifiée.` })
                         console.log(err);
                     }
                 })
