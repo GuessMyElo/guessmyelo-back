@@ -22,6 +22,10 @@ module.exports = (app) => {
                         table.string("url").notNullable();
                         table.integer("userId").notNullable();
                         break;
+                    case "rooms":
+                        table.string('room_id', 191).unique().notNullable();
+                        table.integer('config_id').notNullable();
+                        table.json('participants').notNullable();
                     default:
                         break;
                 }
