@@ -1,3 +1,5 @@
+const knex = require("./knex/knex");
+
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -6,14 +8,14 @@ cloudinary.config({
   secure: true,
 });
 
-module.exports = (app, db) => {
+module.exports = (app) => {
   app.get("/cloudinary/*", (req, res) => {
     const prefix = req.params[0];
     cloudinary.api.resources(
-      { resource_type: "video", type : "upload", prefix },
+      { resource_type: "video", type: "upload", prefix },
       (err, result) => {
         if (err) {
-          res.json({ error: true, message : err.message });
+          res.json({ error: true, message: err.message });
         } else {
           res.send(result.resources);
         }
@@ -44,36 +46,22 @@ module.exports = (app, db) => {
   app.post("/cloudinary/image", (req, res) => {
     const { folder, id } = req.body;
     const file = req.files.file;
-    console.log(req.files);
     cloudinary.uploader
-      .upload_stream({ folder }, (err, result) => {
-        if (err) {
-          res.json({ error: true });
-        } else {
-          db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-              connection.query(
-                "UPDATE users SET imageUrl = ? WHERE id = ?",
-                [result.secure_url, id],
-                (err) => {
-                  connection.release();
-                  if (err) {
-                    res.json({
-                      error: true,
-                      message: "La photo de profil n'a pas pu être ajoutée.",
-                    });
-                  } else {
-                    res.json({
-                      error: false,
-                      message: "La photo de profil a été ajoutée.",
-                      url: result.secure_url,
-                    });
-                  }
-                }
-              );
-            }
-          });
+      .upload_stream({ folder }, async (err, result) => {
+        if (err) return res.status(500).send(err);
+        try {
+          const response = await knex("users")
+            .where({ id })
+            .update({ imageUrl: result.secure_url });
+          res
+            .status(200)
+            .send(
+              response > 0
+                ? "La photo de profil a été ajoutée."
+                : "L'utilisateur n'a pas été trouvé."
+            );
+        } catch (error) {
+          res.status(500).send(error);
         }
       })
       .end(file.data);
@@ -83,39 +71,49 @@ module.exports = (app, db) => {
     const video = req.body;
     const videoName = video.public_id.split("/").slice(-1)[0];
     const newPublicId = `videos/${video.game}/${videoName}`;
-    cloudinary.uploader.rename(video.public_id, newPublicId, { resource_type : "video"}, (err, result) => {
-      if(err) {
-        res.json({error : true, message : err.message});
-      } else {
+    cloudinary.uploader.rename(
+      video.public_id,
+      newPublicId,
+      { resource_type: "video" },
+      async (err, result) => {
+        if (err) return res.status(500).send(err);
+
         const params = {
-          status : "verified",
-          url : result.secure_url,
-          public_id : result.public_id
+          status: "verified",
+          url: result.secure_url,
+          public_id: result.public_id,
+        };
+
+        try {
+          const response = await knex("video")
+            .where({ id: video.id })
+            .update(params);
+          res
+            .status(200)
+            .send(
+              response > 0
+                ? "La vidéo a été validée"
+                : "La vidéo n'a pas été trouvée"
+            );
+        } catch (error) {
+          res.status(500).send(error);
         }
-        db.getConnection((err, connection) => {
-          if (err) res.json({ error: true, err });
-          else {
-            connection.query("UPDATE video SET ? WHERE id=?", [params, video.id], (err) => {
-              if(err) {
-                res.json({error : true, message : err.sqlMessage});
-              } else {
-                res.json({error : false, message : "La vidéo a été validée."});
-              }
-            })
-          }
-        })
       }
-    })
-  })
+    );
+  });
 
   app.delete("/cloudinary/*", (req, res) => {
     const public_id = req.params[0];
-    cloudinary.uploader.destroy(public_id, { resource_type : "video"}, (err, response) => {
-      if(err || response.result !== "ok") {
-        res.json({error : true, message : response.result || err.message});
-      } else {
-        res.json({error : false, message : "La vidéo a été supprimée."})
+    cloudinary.uploader.destroy(
+      public_id,
+      { resource_type: "video" },
+      (err, response) => {
+        if (err || response.result !== "ok") {
+          res.json({ error: true, message: response.result || err.message });
+        } else {
+          res.json({ error: false, message: "La vidéo a été supprimée." });
+        }
       }
-    })
-  })
+    );
+  });
 };
