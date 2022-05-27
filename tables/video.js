@@ -1,104 +1,71 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const knex = require("../knex/knex");
 
 module.exports = (app, db) => {
-    const getParams = (req) => {
-        return {
-            rank : req.body.rank,
-            url : req.body.url,
-            userId : req.body.userId
-        }
+  app.get("/video", async (req, res) => {
+    try {
+      const response = await knex.select().from("video");
+      res.status(200).send(response);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
     }
+  });
 
-    app.get('/video', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('SELECT * FROM video', (err, result) => {
-                    connection.release();
-                    if (!err) {
-                        res.send(result);
-                    } else {
-                        console.log(err);
-                    }
-                })
-            }
-        })
-    })
+  app.get("/video/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+      const response = await knex("video").where({ id }).select();
+      res.status(200).send(response[0]);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-    app.get('/video/:id', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('SELECT * FROM video WHERE id = ?', [req.params.id], (err, result) => {
-                    connection.release();
+  app.post("/video", async (req, res) => {
+    const params = req.body;
+    try {
+      await knex("video").insert(params);
+      res.status(204).send(`La vidéo a été ajouté.`);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-                    if (!err) {
-                        res.send(result);
-                        console.log("Success.");
-                    } else {
-                        console.log(err);
-                    }
-                })
-            }
-        })
-    })
+  app.delete("/video/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+      const response = await knex("video").where({ id }).del();
+      res
+        .status(200)
+        .send(
+          response > 0
+            ? `La vidéo ${id} a été supprimée.`
+            : `La vidéo ${id} n'existe pas.`
+        );
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-    app.post('/video', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) {
-                res.json({ error: true, err });
-            } else {
-                let params = getParams(req);
+  app.put("/video/:id", async (req, res) => {
+    const id = req.params.id;
+    const params = req.body;
 
-                connection.query('INSERT INTO video SET ?', params, (err) => {
-                    connection.release();
-
-                    if (!err) {
-                        res.json({ error: false, message: `La vidéo a été ajoutée.` });
-                    } else {
-                        res.json({ error: true, message: "La vidéo n'a pas pu être ajoutée." });
-                        console.log(err);
-                    }
-                })
-            }
-        })
-    })
-
-    app.delete('/video/:id', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('DELETE FROM video WHERE id = ?', [req.params.id], (err) => {
-                    if (!err) {
-                        res.json({ error: false, message: `La vidéo ${[req.params.id]} a été supprimé.` });
-                        connection.release();
-                    } else {
-                        res.json({ error: true, message: `La vidéo ${[req.params.id]} n'a pas pu être supprimée.` })
-                        console.log(err);
-                    }
-                })
-            }
-        })
-    })
-
-    app.put('/video/:id', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                const params = getParams(req);
-
-                connection.query('UPDATE video SET ? WHERE id = ?', [params, req.params.id], (err) => {
-                    connection.release()
-
-                    if (!err) {
-                        res.json({ error: false, message: `La vidéo ${params.username} a été modifiée.` });
-                    } else {
-                        res.json({ error: true, message: `La vidéo ${params.username} n'a pas été modifiée.` })
-                        console.log(err);
-                    }
-                })
-            }
-        })
-    })
-}
+    try {
+      const response = await knex("video").where({ id }).update(params);
+      res
+        .status(200)
+        .send(
+          response > 0
+            ? `La vidéo ${id} a été modifiée.`
+            : `La vidéo ${id} n'existe pas.`
+        );
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+};

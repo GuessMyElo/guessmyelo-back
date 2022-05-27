@@ -1,238 +1,161 @@
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { getAccessToken } = require("../functions");
+const knex = require("../knex/knex");
 
-module.exports = (app, db) => {
-    const getParams = (req) => {
-        return {
-            username: req.body.username,
-            twitch_id: req.body.twitch_id === "" ? null : JSON.stringify(req.body.twitch_id),
-            discord_id: req.body.discord_id === "" ? null : JSON.stringify(req.body.discord_id),
-            email: req.body.email,
-            password: req.body.password,
-            role: req.body.role
-        }
+module.exports = (app) => {
+  const getParams = (req) => {
+    return {
+      username: req.body.username,
+      twitch_id:
+        req.body.twitch_id === "" ? null : JSON.stringify(req.body.twitch_id),
+      discord_id:
+        req.body.discord_id === "" ? null : JSON.stringify(req.body.discord_id),
+      email: req.body.email,
+      password: req.body.password,
+      role: req.body.role,
+    };
+  };
+
+  app.get("/users", async (req, res) => {
+    try {
+      const response = await knex.select().from("users");
+      res.status(200).send(response);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
     }
+  });
 
-    app.get('/users', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('SELECT * FROM users', (err, result) => {
-                    connection.release();
-                    if (!err) {
-                        res.send(result);
-                    } else {
-                        console.log(err.message);
-                    }
-                })
-            }
-        })
-    })
+  app.get("/users/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+      const response = await knex("users").where({ id }).select();
+      res.status(200).send(response[0]);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-    app.get('/users/maxId', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('SELECT MAX(id) FROM users', (err, result) => {
-                    connection.release();
-                    if (!err) {
-                        const maxId = result[0]["MAX(id)"] === null ? 0 : result[0]["MAX(id)"];
-                        res.json({ error: false, maxId });
-                        console.log("Success.");
-                    } else {
-                        res.json({ error: true, message: "L'ID maximal n'a pas pu être récupéré." })
-                        console.log(err.message);
-                    }
-                })
-            }
-        })
-    })
+  app.get("/users/email/:email", async (req, res) => {
+    const email = req.params.email;
+    try {
+      const response = await knex("users").where({ email }).select();
+      const user = response[0];
 
-    app.get('/users/:id', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('SELECT * FROM users WHERE id = ?', [req.params.id], (err, result) => {
-                    connection.release();
+      let accessToken;
+      if (user) {
+        accessToken = getAccessToken(user);
+      }
 
-                    if (!err) {
-                        res.send(result);
-                        console.log("Success.");
-                    } else {
-                        console.log(err.message);
-                    }
-                })
-            }
-        })
-    })
+      res.status(user ? 200 : 204).json({ user, accessToken });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-    app.get('/users/email/:email', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('SELECT * FROM users WHERE email = ?', [req.params.email], (err, result) => {
-                    connection.release();
+  app.post("/register", async (req, res) => {
+    let params = getParams(req);
+    try {
+      params.password = bcrypt.hashSync(
+        params.password,
+        parseInt(process.env.BCRYPT_SALT_ROUNDS)
+      );
 
-                    if (!err) {
-                        const accessToken = jwt.sign(
-                            {
-                                id: result[0].id,
-                                username: result[0].username,
-                                role: result[0].role,
-                            },
-                            process.env.JWT_SECRET
-                        );
-                        res.send({user : result[0], accessToken});
-                        console.log("Success.");
-                    } else {
-                        console.log(err.message);
-                    }
-                })
-            }
-        })
-    })
+      const response = await knex("users").insert(params);
 
-    app.post('/users/add', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) {
-                res.json({ error: true, err });
-            } else {
-                let params = getParams(req);
+      const accessToken = getAccessToken({
+        id: response[0],
+        username: params.username,
+        role: params.role,
+      });
 
-                bcrypt.hash(params.password, parseInt(process.env.BCRYPT_SALT_ROUNDS), (err, hash) => {
-                    if (err) {
-                        res.json({ err });
-                    } else {
-                        params.password = hash;
-                        connection.query('INSERT INTO users SET ?', params, (err, result) => {
-                            connection.release();
+      const { password, ...user } = params;
 
-                            if (!err) {
-                                const accessToken = jwt.sign(
-                                    {
-                                        id : result.insertId,
-                                        username: params.username,
-                                        role: params.role,
-                                    },
-                                    process.env.JWT_SECRET
-                                );
-                                res.status(200).json({tmessage: `L'utilisateur ${params.username} a été ajouté.`, accessToken, user: params });
-                            } else {
-                                res.status(502).json({errno : err.errno, err : err.sqlMessage, message: "L'utilisateur n'a pas pu être ajouté." });
-                                console.log(err.message);
-                            }
-                        })
-                    }
-                })
-            }
-        })
-    })
+      res.status(200).json({
+        message: `L'utilisateur ${user.username} a été ajouté.`,
+        accessToken,
+        user,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-    app.delete('/users/:id', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                connection.query('DELETE FROM users WHERE id = ?', [req.params.id], (err) => {
-                    if (!err) {
-                        res.json({ error: false, message: `L'utilisateur ${[req.params.id]} a été supprimé.` });
+  app.delete("/users/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+      const response = await knex("users").where({ id }).del();
+      res
+        .status(200)
+        .send(
+          response > 0
+            ? `L'utilisateur ${id} a été supprimé.`
+            : `L'utilisateur ${id} n'existe pas.`
+        );
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-                        connection.query('SELECT MAX(id) FROM users', (err, result) => {
-                            if (!err) {
-                                const maxId = result[0]["MAX(id)"] === null ? 0 : result[0]["MAX(id)"];
+  app.put("/users/:id", async (req, res) => {
+    const id = req.params.id;
+    const params = getParams(req);
 
-                                connection.query('ALTER TABLE users AUTO_INCREMENT = ?', [maxId], (err) => {
-                                    connection.release()
-                                    if (err) {
-                                        console.log(err.message);
-                                    }
-                                })
-                            } else {
-                                console.log(err.message);
-                            }
-                        })
-                    } else {
-                        res.json({ error: true, message: `L'utilisateur ${[req.params.id]} n'a pas pu être supprimé.` })
-                        console.log(err.message);
-                    }
-                })
-            }
-        })
-    })
+    try {
+      const response = await knex("users").where({ id }).update(params);
+      res
+        .status(200)
+        .send(
+          response > 0
+            ? `L'utilisateur ${id} a été modifié.`
+            : `L'utilisateur ${id} n'existe pas.`
+        );
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
 
-    app.put('/users/:id', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) res.json({ error: true, err });
-            else {
-                const params = getParams(req);
+  app.post("/login", async (req, res) => {
+    const params = {
+      auth: req.body.auth,
+      password: req.body.password,
+    };
 
-                connection.query('UPDATE users SET ? WHERE id = ?', [params, req.params.id], (err) => {
-                    connection.release()
+    try {
+      const response = await knex
+        .select()
+        .from("users")
+        .where({ username: params.auth })
+        .orWhere({ email: params.auth });
 
-                    if (!err) {
-                        res.json({ error: false, message: `L'utilisateur ${params.username} a été modifié.` });
-                    } else {
-                        res.json({ error: true, message: `L'utilisateur ${params.username} n'a pas été modifié.` })
-                        console.log(err.message);
-                    }
-                })
-            }
-        })
-    })
+      if (response.length === 0)
+        return res
+          .status(401)
+          .json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
 
-    app.post("/login", (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) {
-                res.json(err);
-            } else {
-                const params = {
-                    auth : req.body.auth,
-                    password : req.body.password
-                };
+      const user = response[0];
 
-                connection.query("SELECT * FROM users WHERE email = ? OR username = ?", [params.auth, params.auth], (err, result) => {
-                    connection.release();
+      const isPasswordCorrect = bcrypt.compareSync(
+        params.password,
+        user.password
+      );
 
-                    if (!err) {
-                        if (result.length > 0) {
-                            bcrypt.compare(
-                                params.password,
-                                result[0].password,
-                                (err, response) => {
-                                    if (response) {
-                                        const accessToken = jwt.sign(
-                                            {
-                                                id: result[0].id,
-                                                username: result[0].username,
-                                                role: result[0].role,
-                                            },
-                                            process.env.JWT_SECRET
-                                        );
-                                        res.json({
-                                            error: false,
-                                            message: "Connexion réussie.",
-                                            user: result[0],
-                                            accessToken,
-                                        });
-                                    } else {
-                                        res.json({
-                                            error: true,
-                                            message: "Mot de passe incorrect.",
-                                        });
-                                    }
-                                }
-                            );
-                        } else {
-                            res.json({
-                                error: true,
-                                message: "Cet utilisateur n'existe pas.",
-                            });
-                        }
-                    } else {
-                        console.log(err.message);
-                    }
-                }
-                );
-            }
-        });
-    })
-}
+      if (!isPasswordCorrect)
+        return res
+          .status(401)
+          .json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
+
+      const accessToken = getAccessToken(user);
+
+      res.status(200).json({ user, accessToken });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+};

@@ -61,7 +61,7 @@ module.exports = (app) => {
         .then(async () => {
             knex.destroy();
 
-            config.connection.database = process.env.DB_NAME;;
+            config.connection.database = process.env.DB_NAME;
             knex = require('knex')(config);
 
             const response = await buildtable(tableName, knex);
@@ -69,7 +69,7 @@ module.exports = (app) => {
         })
         .catch(async (error) => {
             if(error.errno===1007) {
-                config.connection.database = process.env.DB_NAME;;
+                config.connection.database = process.env.DB_NAME;
                 knex = require('knex')(config);
 
                 const response = await buildtable(tableName, knex);

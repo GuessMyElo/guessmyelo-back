@@ -1,6 +1,3 @@
-const FormData = require("form-data");
-const fs = require("fs");
-const fetch = require("node-fetch");
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
