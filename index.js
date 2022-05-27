@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const mysql = require("mysql");
 const http = require("http")
+const socketController = require("./models/SocketController.Js");
 
 const app = express();
 
@@ -18,41 +19,24 @@ const io = require("socket.io")(httpServer, {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"]
   }
-});;
+});
 
-let users = {}
 io.on('connection', (socket) => {
-  console.log("user connected")
   let current_room;
   socket.on('join-room', (data) => {
-    console.log('join room')
-    if (!users[data.room_id]) users[data.room_id] = [];
-    users[data.room_id].push({socket_id: socket.id, ...data.user});
-    socket.join(data.room_id);
-    current_room = data.room_id,
-    io.to(data.room_id).emit('update-users', users[data.room_id]);
+    socketController.addPlayerToRoom(socket, data);
+    current_room = data.room_id;
+    io.to(data.room_id).emit('update-users', socketController.getUsersFromRoom(data.room_id));
   })
 
   socket.on('disconnecting', function() {
-    console.log('leave room')
-    if (current_room) {
-      const userIndex = users[current_room].findIndex((u) => u.socket_id === socket.id);
-      if (userIndex > -1) {
-        users[current_room].splice(userIndex, 1);
-        socket.leave(current_room);
-        io.to(current_room).emit('update-users', users[current_room]);
-      }
-    }
+    socketController.removePlayerFromRoom(socket, current_room);
+    io.to(current_room).emit('update-users', socketController.getUsersFromRoom(current_room));
   })
 
   socket.on('leave-room', (data) => {
-    console.log('leave room')
-    const userIndex = users[data.room_id].findIndex((u) => u.socket_id === socket.id);
-    if (userIndex > -1) {
-      users[data.room_id].splice(userIndex, 1);
-      socket.leave(data.room_id);
-      io.to(data.room_id).emit('update-users', users[data.room_id]);
-    }
+    socketController.removePlayerFromRoom(socket, data.room_id);
+    io.to(current_room).emit('update-users', socketController.getUsersFromRoom(current_room));
   })
 });
 
