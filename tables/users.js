@@ -1,3 +1,4 @@
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { getAccessToken } = require("../functions");
 const knex = require("../knex/knex");
@@ -54,6 +55,19 @@ module.exports = (app) => {
       res.status(500).send(error);
     }
   });
+
+  app.get("/isAuth", async (req, res) => {
+    let token = req.headers["authorization"];
+    if(token.includes("Bearer")) {
+      token = token.split(" ")[1];
+    }
+
+    if(token) {
+      const verify = jwt.verify(token, process.env.JWT_SECRET);
+      return res.send(verify);
+    }
+    res.send("no token")
+  })
 
   app.post("/register", async (req, res) => {
     let params = getParams(req);

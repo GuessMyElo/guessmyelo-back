@@ -1,15 +1,26 @@
 const knex = require("../knex/knex");
 
-module.exports = (app, db) => {
+module.exports = (app) => {
   app.get("/video", async (req, res) => {
     try {
-      const response = await knex.select().from("video");
+      const response = await knex("video").select();
       res.status(200).send(response);
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
     }
   });
+
+  app.get("/video/random/:limit", async (req, res) => {
+    const limit = req.params.limit;
+    try {
+      const response = await knex("video").select().orderByRaw("RAND()").limit(limit);
+      res.status(200).send(response);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  })
 
   app.get("/video/:id", async (req, res) => {
     const id = req.params.id;
@@ -21,6 +32,7 @@ module.exports = (app, db) => {
       res.status(500).send(error);
     }
   });
+
 
   app.post("/video", async (req, res) => {
     const params = req.body;

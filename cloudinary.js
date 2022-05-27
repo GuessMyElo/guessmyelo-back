@@ -53,13 +53,7 @@ module.exports = (app) => {
           const response = await knex("users")
             .where({ id })
             .update({ imageUrl: result.secure_url });
-          res
-            .status(200)
-            .send(
-              response > 0
-                ? "La photo de profil a été ajoutée."
-                : "L'utilisateur n'a pas été trouvé."
-            );
+          res.status(200).json({ message: "L'image de profil a été ajoutée.", url: result.secure_url });
         } catch (error) {
           res.status(500).send(error);
         }
