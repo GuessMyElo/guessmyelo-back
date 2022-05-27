@@ -192,44 +192,46 @@ module.exports = (app, db) => {
                 connection.query("SELECT * FROM users WHERE email = ? OR username = ?", [params.auth, params.auth], (err, result) => {
                     connection.release();
 
-                    if (!err) {
-                        if (result.length > 0) {
-                            bcrypt.compare(
-                                params.password,
-                                result[0].password,
-                                (err, response) => {
-                                    if (response) {
-                                        const accessToken = jwt.sign(
-                                            {
-                                                id: result[0].id,
-                                                username: result[0].username,
-                                                role: result[0].role,
-                                            },
-                                            process.env.JWT_SECRET
-                                        );
-                                        res.json({
-                                            error: false,
-                                            message: "Connexion réussie.",
-                                            user: result[0],
-                                            accessToken,
-                                        });
-                                    } else {
-                                        res.json({
-                                            error: true,
-                                            message: "Mot de passe incorrect.",
-                                        });
-                                    }
-                                }
+                    if (err) {
+                        console.log(err.message);
+                        return
+                    }
+
+                    if (result.length === 0) {
+                        return res.json({
+                            error: true,
+                            message: "Cet utilisateur n'existe pas.",
+                        });
+                    }
+
+                    
+                    bcrypt.compare(
+                        params.password,
+                        result[0].password,
+                        (err, response) => {
+                            if (!response) {
+                                return res.json({
+                                    error: true,
+                                    message: "Mot de passe incorrect.",
+                                });
+                            }
+
+                            const accessToken = jwt.sign(
+                                {
+                                    id: result[0].id,
+                                    username: result[0].username,
+                                    role: result[0].role,
+                                },
+                                process.env.JWT_SECRET
                             );
-                        } else {
                             res.json({
-                                error: true,
-                                message: "Cet utilisateur n'existe pas.",
+                                error: false,
+                                message: "Connexion réussie.",
+                                user: result[0],
+                                accessToken,
                             });
                         }
-                    } else {
-                        console.log(err.message);
-                    }
+                    );
                 }
                 );
             }
