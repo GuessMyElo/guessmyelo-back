@@ -26,17 +26,26 @@ io.on('connection', (socket) => {
   socket.on('join-room', (data) => {
     socketController.addPlayerToRoom(socket, data);
     current_room = data.room_id;
-    io.to(data.room_id).emit('update-users', socketController.getUsersFromRoom(data.room_id));
+    io.to(data.room_id).emit('update-users', socketController.getGameState(data.room_id));
   })
 
   socket.on('disconnecting', function() {
     socketController.removePlayerFromRoom(socket, current_room);
-    io.to(current_room).emit('update-users', socketController.getUsersFromRoom(current_room));
+    io.to(current_room).emit('update-users', socketController.getGameState(current_room));
   })
 
   socket.on('leave-room', (data) => {
     socketController.removePlayerFromRoom(socket, data.room_id);
-    io.to(current_room).emit('update-users', socketController.getUsersFromRoom(current_room));
+    io.to(current_room).emit('update-users', socketController.getGameState(current_room));
+  })
+  // socket.current.emit('edit-config', {room_id: params.id, room_info: roomInfo});
+  socket.on('edit-config',(data)=>{
+    socketController.editConfig(data);
+    io.to(data.room_id).emit('update-config', socketController.getConfigFromRoom(data.room_id));
+  })
+
+  socket.on('start-game',(room_id) =>{
+    io.to(room_id).emit('game-started')
   })
 });
 
