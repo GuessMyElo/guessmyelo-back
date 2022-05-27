@@ -44,8 +44,13 @@ io.on('connection', (socket) => {
     io.to(data.room_id).emit('update-config', socketController.getConfigFromRoom(data.room_id));
   })
 
-  socket.on('start-game',(room_id) =>{
-    io.to(room_id).emit('game-started')
+  socket.on('request-game', (room_id) => {
+    io.to(room_id).emit('game-data', socketController.getGameState(room_id));
+  })
+
+  socket.on('start-game',(data) =>{
+    socketController.editConfig(data);
+    io.to(data.room_id).emit('game-started')
   })
 });
 

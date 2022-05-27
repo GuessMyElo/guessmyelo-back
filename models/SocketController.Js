@@ -1,11 +1,6 @@
 class SocketController {
     constructor() {
-        this.games = {
-            "room_id": {
-              users: [],
-              config: {}
-            }
-          }
+        this.games = {}
     }
 
     getUsersFromRoom(room_id) {
@@ -34,14 +29,13 @@ class SocketController {
 
     getConfigFromRoom(room_id){
         if (!this.games[room_id]) this.games[room_id] = { users: [], config: {} };
-        console.log(this.games[room_id].config)
         return this.games[room_id].config;
     }
 
     getGameState(room_id){
         const users= this.getUsersFromRoom(room_id);
         const roomInfo  = this.getConfigFromRoom(room_id);
-       return {users, roomInfo}
+        return {users, roomInfo}
     }
 }
 

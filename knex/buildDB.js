@@ -24,8 +24,9 @@ module.exports = (app) => {
                         break;
                     case "rooms":
                         table.string('room_id', 191).unique().notNullable();
-                        table.integer('config_id').notNullable();
+                        table.json('config').notNullable();
                         table.integer('room_owner').notNullable();
+                        table.json('participants').notNullable();
                     default:
                         break;
                 }
