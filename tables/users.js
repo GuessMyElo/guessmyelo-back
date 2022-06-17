@@ -58,16 +58,30 @@ module.exports = (app) => {
 
   app.get("/isAuth", async (req, res) => {
     let token = req.headers["authorization"];
-    if(token.includes("Bearer")) {
+    if (token.includes("Bearer")) {
       token = token.split(" ")[1];
     }
 
-    if(token) {
-      const verify = jwt.verify(token, process.env.JWT_SECRET);
-      return res.send(verify);
+    if (!token) return res.status(401).send("Aucun jeton fourni.");
+
+    
+    try {
+      const decodedJwt = jwt.verify(token, process.env.JWT_SECRET);
+
+      const response = await knex("users")
+        .select()
+        .where({ id: decodedJwt.id });
+
+      const user = response[0];
+
+      const accessToken = getAccessToken(user);
+
+      return res.status(200).json({ user, accessToken });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send(error.message);
     }
-    res.send("no token")
-  })
+  });
 
   app.post("/register", async (req, res) => {
     let params = getParams(req);
@@ -81,8 +95,7 @@ module.exports = (app) => {
 
       const accessToken = getAccessToken({
         id: response[0],
-        username: params.username,
-        role: params.role,
+        ...params,
       });
 
       const { password, ...user } = params;
@@ -92,42 +105,6 @@ module.exports = (app) => {
         accessToken,
         user,
       });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send(error);
-    }
-  });
-
-  app.delete("/users/:id", async (req, res) => {
-    const id = req.params.id;
-    try {
-      const response = await knex("users").where({ id }).del();
-      res
-        .status(200)
-        .send(
-          response > 0
-            ? `L'utilisateur ${id} a été supprimé.`
-            : `L'utilisateur ${id} n'existe pas.`
-        );
-    } catch (error) {
-      console.log(error);
-      res.status(500).send(error);
-    }
-  });
-
-  app.put("/users/:id", async (req, res) => {
-    const id = req.params.id;
-    const params = getParams(req);
-
-    try {
-      const response = await knex("users").where({ id }).update(params);
-      res
-        .status(200)
-        .send(
-          response > 0
-            ? `L'utilisateur ${id} a été modifié.`
-            : `L'utilisateur ${id} n'existe pas.`
-        );
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
@@ -165,8 +142,43 @@ module.exports = (app) => {
           .json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
 
       const accessToken = getAccessToken(user);
-
       res.status(200).json({ user, accessToken });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  app.delete("/users/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+      const response = await knex("users").where({ id }).del();
+      res
+        .status(200)
+        .send(
+          response > 0
+            ? `L'utilisateur ${id} a été supprimé.`
+            : `L'utilisateur ${id} n'existe pas.`
+        );
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  });
+
+  app.put("/users/:id", async (req, res) => {
+    const id = req.params.id;
+    const params = getParams(req);
+
+    try {
+      const response = await knex("users").where({ id }).update(params);
+      res
+        .status(200)
+        .send(
+          response > 0
+            ? `L'utilisateur ${id} a été modifié.`
+            : `L'utilisateur ${id} n'existe pas.`
+        );
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
