@@ -38,10 +38,16 @@ io.on('connection', (socket) => {
     socketController.removePlayerFromRoom(socket, data.room_id);
     io.to(current_room).emit('update-users', socketController.getGameState(current_room));
   })
-  // socket.current.emit('edit-config', {room_id: params.id, room_info: roomInfo});
+
   socket.on('edit-config',(data)=>{
     socketController.editConfig(data);
     io.to(data.room_id).emit('update-config', socketController.getConfigFromRoom(data.room_id));
+  })
+
+  socket.on('edit-state', (data) => {
+    console.log("edit state")
+    socketController.editState(data);
+    io.to(data.room_id).emit('update-config', socketController.getStateFromRoom(data.room_id));
   })
 
   socket.on('request-game', (room_id) => {
@@ -49,6 +55,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('start-game',(data) =>{
+    socketController.initState(data.room_id);
     socketController.editConfig(data);
     io.to(data.room_id).emit('game-started')
   })

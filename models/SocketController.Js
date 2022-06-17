@@ -4,7 +4,7 @@ class SocketController {
     }
 
     getUsersFromRoom(room_id) {
-        if (!this.games[room_id]) this.games[room_id] = { users: [], config: {} };
+        if (!this.games[room_id]) this.games[room_id] = { users: [], config: {}, state: {} };
         return this.games[room_id].users;
     }
 
@@ -17,18 +17,28 @@ class SocketController {
     }
 
     addPlayerToRoom(socket, {room_id, user}) {
-        if (!this.games[room_id]) this.games[room_id] = { users: [], config: {} };
+        if (!this.games[room_id]) this.games[room_id] = { users: [], config: {}, state: {} };
         this.games[room_id].users.push({socket_id: socket.id, ...user});
         socket.join(room_id);
     }
 
     editConfig({room_id,room_info}){
-        if (!this.games[room_id]) this.games[room_id] = { users: [], config: {} };
         this.games[room_id].config = room_info;
     }
 
+    initState(room_id) {
+        this.games[room_id] = {...this.games[room_id], state: {}}
+    }
+
+    editState({room_id,state_info}){
+        this.games[room_id].state = state_info;
+    }
+
+    getStateFromRoom(room_id) {
+        return this.games[room_id].state;
+    }
+
     getConfigFromRoom(room_id){
-        if (!this.games[room_id]) this.games[room_id] = { users: [], config: {} };
         return this.games[room_id].config;
     }
 
