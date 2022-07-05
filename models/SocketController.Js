@@ -1,6 +1,28 @@
 class SocketController {
     constructor() {
-        this.games = {}
+        //id room_id reponse
+
+        this.games = {
+            "456465465d4as654da65s4": {
+                users: [
+                    {
+                        id: 1,
+                        points: 15
+                    }
+                ],
+                config: {
+                    nb_videos: 10,
+                    nb_loop: 2
+                },
+                state: {
+                    loop: 1,
+                    timestamp: 1541465465465,
+                    alreadyAnswered: 0,
+                    current_video: 0,
+                    videos: [{link: link,rank:'challenger'}, {link:link,rank:'iron'}]
+                }
+            }
+        }
     }
 
     getUsersFromRoom(room_id) {
@@ -31,6 +53,10 @@ class SocketController {
 
     editState({room_id, state_info}){
         this.games[room_id].state = state_info;
+    }
+
+    editUsers({room_id,users}){
+        this.games[room_id].users = users;
     }
 
     getStateFromRoom(room_id) {
