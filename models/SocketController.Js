@@ -29,7 +29,7 @@ class SocketController {
         this.games[room_id] = {...this.games[room_id], state: {}}
     }
 
-    editState({room_id,state_info}){
+    editState({room_id, state_info}){
         this.games[room_id].state = state_info;
     }
 
