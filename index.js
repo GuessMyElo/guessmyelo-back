@@ -80,7 +80,6 @@ io.on('connection', (socket) => {
   socket.on('save-answer',(data) => {
     const currentState = socketController.getStateFromRoom(data.room_id);
     const currentUsers = socketController.getUsersFromRoom(data.room_id);
-    console.log(currentState.ranks[currentvideo]);
     let points = 0;
     const videosRanks = currentState.videos.map(video=>{
       return video.rank;
@@ -98,8 +97,8 @@ io.on('connection', (socket) => {
     const searchedUser = users.find((u) => u.id === data.user_id);
     
     socketController.editState({room_id: data.room_id, state_info: {...currentState, alreadyAnswered:answered}});
-    socketController.editUsers({room_id: data.room_id, users: [...currentUsers, {...searchedUser, waiting: false, points}]})
-    io.to(data.room_id).emit('answer-saved',{users: data.user_id})
+    socketController.editUsers({room_id: data.room_id, users: [...currentUsers, {...searchedUser, answered: true, points}]})
+    io.to(data.room_id).emit('answer-saved',{users: socketController.getUsersFromRoom(data.room_id)})
   })
 });
 

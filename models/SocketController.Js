@@ -2,27 +2,7 @@ class SocketController {
     constructor() {
         //id room_id reponse
 
-        this.games = {
-            "456465465d4as654da65s4": {
-                users: [
-                    {
-                        id: 1,
-                        points: 15
-                    }
-                ],
-                config: {
-                    nb_videos: 10,
-                    nb_loop: 2
-                },
-                state: {
-                    loop: 1,
-                    timestamp: 1541465465465,
-                    alreadyAnswered: 0,
-                    current_video: 0,
-                    videos: [{link: link,rank:'challenger'}, {link:link,rank:'iron'}]
-                }
-            }
-        }
+        this.games = {}
     }
 
     getUsersFromRoom(room_id) {
