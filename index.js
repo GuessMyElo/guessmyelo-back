@@ -85,19 +85,22 @@ io.on('connection', (socket) => {
       return video.rank;
     })
     
-    if(data.answer === videosRanks[currentvideo]){
+    if(data.answer === videosRanks[currentState.current_video]){
        points = currentUsers.length + 1 - currentState.alreadyAnswered;
     }
     let answered = currentState.alreadyAnswered + 1;
-    
-    const users = currentUsers.map(user=>{
-      return user.id;
-    })
 
-    const searchedUser = users.find((u) => u.id === data.user_id);
+
+    const newUsers= currentUsers.map(user =>{
+        if(user.id=== data.user_id){
+            user.answered = true;
+            user.points = points
+        }
+        return user;
+    })
     
     socketController.editState({room_id: data.room_id, state_info: {...currentState, alreadyAnswered:answered}});
-    socketController.editUsers({room_id: data.room_id, users: [...currentUsers, {...searchedUser, answered: true, points}]})
+    socketController.editUsers({room_id: data.room_id, users:newUsers})
     io.to(data.room_id).emit('answer-saved',{users: socketController.getUsersFromRoom(data.room_id)})
   })
 
@@ -108,6 +111,18 @@ io.on('connection', (socket) => {
     console.log(socketController.getStateFromRoom(room_id));
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
+
+  socket.on('reset-user-state', (room_id) => {
+    console.log(room_id)
+    const currentUsers = socketController.getUsersFromRoom(room_id);
+    const newUsers= currentUsers.map(user =>{
+            user.answered = false;
+        return user;
+    })
+    socketController.editUsers({room_id, users:newUsers})
+    io.to(room_id).emit('user-state-reseted', {users: socketController.getUsersFromRoom(room_id)});
+  })
+  
 });
 
 
