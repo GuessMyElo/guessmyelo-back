@@ -19,7 +19,6 @@ class SocketController {
     addPlayerToRoom(socket, {room_id, user}) {
         if (!this.games[room_id]) this.games[room_id] = { users: [], config: {}, state: {} };
         this.games[room_id].users.push({socket_id: socket.id, ...user});
-        socket.join(room_id);
     }
 
     editConfig({room_id,room_info}){
@@ -45,7 +44,8 @@ class SocketController {
     getGameState(room_id){
         const users= this.getUsersFromRoom(room_id);
         const roomInfo  = this.getConfigFromRoom(room_id);
-        return {users, roomInfo}
+        const state  = this.getStateFromRoom(room_id);
+        return {users, roomInfo, state}
     }
 }
 

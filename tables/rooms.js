@@ -76,7 +76,6 @@ module.exports = (app, db) => {
                 connection.query('UPDATE rooms SET config = ?, participants = ? WHERE room_id = ?', [config, participants, room_id], (err, results) => {
                     connection.release();
                     if (!err) {
-                        console.log("okokokoko")
                         return res.status(200).json({success: true});
                     }
                     return res.status(400);

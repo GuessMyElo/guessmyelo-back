@@ -25,6 +25,7 @@ io.on('connection', (socket) => {
   let current_room;
   socket.on('join-room', (data) => {
     socketController.addPlayerToRoom(socket, data);
+    socket.join(data.room_id);
     current_room = data.room_id;
     io.to(data.room_id).emit('update-users', socketController.getGameState(data.room_id));
   })
@@ -45,19 +46,28 @@ io.on('connection', (socket) => {
   })
 
   socket.on('edit-state', (data) => {
-    console.log("edit state")
     socketController.editState(data);
-    io.to(data.room_id).emit('update-config', socketController.getStateFromRoom(data.room_id));
+    io.to(data.room_id).emit('update-state', socketController.getStateFromRoom(data.room_id));
+  })
+
+  socket.on('new-loop', (room_id) => {
+    const currentState = socketController.getStateFromRoom(room_id);
+    socketController.editState({...currentState, loop: currentState.loop + 1, timestamp: new Date().getTime() });
+    io.to(room_id).emit('loop-started', socketController.getStateFromRoom(room_id));
   })
 
   socket.on('request-game', (room_id) => {
+    console.log("request game", room_id, socketController.getGameState(room_id));
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
 
   socket.on('start-game',(data) =>{
     socketController.initState(data.room_id);
+    const currentState = socketController.getStateFromRoom(data.room_id);
+    socketController.editState({...currentState, loop: 1, timestamp: new Date().getTime() });
+    console.log(socketController.getGameState(data.room_id))
     socketController.editConfig(data);
-    io.to(data.room_id).emit('game-started')
+    io.to(data.room_id).emit('game-started', socketController.getGameState(data.room_id))
   })
 });
 
