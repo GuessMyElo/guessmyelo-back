@@ -54,10 +54,14 @@ io.on('connection', (socket) => {
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
 
-  socket.on('start-game',(data) =>{
+  socket.on('start-game',(data) => {
     socketController.initState(data.room_id);
     socketController.editConfig(data);
     io.to(data.room_id).emit('game-started')
+  })
+
+  socket.on('save-answer',(data) => {
+    io.to(data.room_id).emit('answer-saved')
   })
 });
 
