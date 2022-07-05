@@ -26,11 +26,42 @@ class SocketController {
     }
 
     initState(room_id) {
-        this.games[room_id] = {...this.games[room_id], state: {}}
+        this.games[room_id] = {...this.games[room_id], state: {
+            current_video : 0,
+            videos : [
+                {
+                    "id": 7,
+                    "rank": "diamant",
+                    "url": "https://res.cloudinary.com/guessmyelo/video/upload/v1653654909/videos/lol/q6oc4swd941qyweg2b84.mp4",
+                    "userId": 2,
+                    "public_id": "videos/lol/fcrwoqysqiymowvzosco",
+                    "status": "verified",
+                    "game": "lol"
+                },
+                {
+                    "id": 6,
+                    "rank": "bronze",
+                    "url": "https://res.cloudinary.com/guessmyelo/video/upload/v1653405124/videos/lol/eqmffb5gxzc3rbdm0kvq.mp4",
+                    "userId": 2,
+                    "public_id": "videos/lol/eqmffb5gxzc3rbdm0kvq",
+                    "status": "verified",
+                    "game": "lol"
+                },
+                {
+                    "id": 8,
+                    "rank": "master",
+                    "url": "https://res.cloudinary.com/guessmyelo/video/upload/v1653654909/videos/lol/q6oc4swd941qyweg2b84.mp4",
+                    "userId": 1,
+                    "public_id": "videos/lol/q6oc4swd941qyweg2b84",
+                    "status": "verified",
+                    "game": "lol"
+                }
+            ]
+        }}
     }
 
     editState({room_id, state_info}){
-        this.games[room_id].state = state_info;
+        this.games[room_id].state = {...state_info};
     }
 
     getStateFromRoom(room_id) {
