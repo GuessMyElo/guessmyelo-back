@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const knex = require("../knex/knex");
 
 module.exports = (app, db) => {
     const getParams = (req) => {
@@ -25,6 +26,17 @@ module.exports = (app, db) => {
             }
         })
     })
+
+    app.get("/video/random/:limit", async (req, res) => {
+        const limit = req.params.limit;
+        try {
+          const response = await knex("video").select().orderByRaw("RAND()").limit(limit);
+          res.status(200).send(response);
+        } catch (error) {
+          console.log(error);
+          res.status(500).send(error);
+        }
+      })
 
     app.get('/video/:id', (req, res) => {
         db.getConnection((err, connection) => {

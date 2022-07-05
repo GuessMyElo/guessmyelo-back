@@ -100,6 +100,14 @@ io.on('connection', (socket) => {
     socketController.editUsers({room_id: data.room_id, users: [...currentUsers, {...searchedUser, answered: true, points}]})
     io.to(data.room_id).emit('answer-saved',{users: socketController.getUsersFromRoom(data.room_id)})
   })
+
+  socket.on('next-video', (room_id) => {
+    console.log(room_id)
+    const currentState = socketController.getStateFromRoom(room_id);
+    socketController.editState({room_id, state_info : {...currentState, loop : 1, timestamp : new Date().getTime(), current_video : currentState.current_video + 1}})
+    console.log(socketController.getStateFromRoom(room_id));
+    io.to(room_id).emit('game-data', socketController.getGameState(room_id));
+  })
 });
 
 
