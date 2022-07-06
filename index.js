@@ -93,6 +93,8 @@ io.on('connection', (socket) => {
 
     const newUsers= currentUsers.map(user =>{
         if(user.id=== data.user_id){
+            if (!user.answers) user.answers = [];
+            user.answers.push(data.answer)
             user.answered = true;
             user.points = points
         }
@@ -105,10 +107,18 @@ io.on('connection', (socket) => {
   })
 
   socket.on('next-video', (room_id) => {
-    console.log(room_id)
     const currentState = socketController.getStateFromRoom(room_id);
     socketController.editState({room_id, state_info : {...currentState, loop : 1, timestamp : new Date().getTime(), current_video : currentState.current_video + 1}})
-    console.log(socketController.getStateFromRoom(room_id));
+    const users = socketController.getUsersFromRoom(room_id);
+    socketController.editUsers({ room_id, users: users.map((user) => {
+      if (!user.answers) user.answers = [];
+      if (!user.answers[currentState.current_video]) {
+        user.answers.push(null);
+      }
+      return user;
+    }) })
+
+    console.log(socketController.getUsersFromRoom(room_id));
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
 

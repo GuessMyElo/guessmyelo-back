@@ -33,7 +33,7 @@ class SocketController {
             videos : [
                 {
                     "id": 7,
-                    "rank": "diamant",
+                    "rank": "diamond",
                     "url": "https://res.cloudinary.com/guessmyelo/video/upload/v1653654909/videos/lol/q6oc4swd941qyweg2b84.mp4",
                     "userId": 2,
                     "public_id": "videos/lol/fcrwoqysqiymowvzosco",
