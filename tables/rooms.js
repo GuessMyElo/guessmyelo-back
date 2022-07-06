@@ -39,8 +39,9 @@ module.exports = (app) => {
             })
             const params = {
                 room_id: hash,
-                config_id: 1,
-                participants: JSON.stringify([user_id])
+                config: {},
+                participants: JSON.stringify([user_id]),
+                room_owner: user_id
             }
 
             try {
