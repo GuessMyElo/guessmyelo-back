@@ -16,7 +16,7 @@ module.exports = (app) => {
       app.get('/rooms/:id', async (req, res) => {
         const id = req.params.id;
         try {
-          const response = await knex("rooms").where({ id }).select();
+          const response = await knex("rooms").where({ room_id : id }).select();
           const participants = JSON.parse(response[0].participants);
           const users = await knex("users").whereIn("id", participants).select();
           res.status(200).send({room_info : response[0], users});
