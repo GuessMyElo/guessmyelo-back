@@ -84,10 +84,13 @@ io.on('connection', (socket) => {
     const videosRanks = currentState.videos.map(video=>{
       return video.rank;
     })
-    
+    console.log(data.answer,videosRanks[currentState.current_video]);
     if(data.answer === videosRanks[currentState.current_video]){
-       points = currentUsers.length + 1 - currentState.alreadyAnswered;
+      console.log(currentUsers.length, currentState.alreadyAnswered);
+       points += currentUsers.length + 1 - currentState.alreadyAnswered;
+       console.log("win");
     }
+    console.log("points:",points);
     let answered = currentState.alreadyAnswered + 1;
 
 
@@ -105,6 +108,8 @@ io.on('connection', (socket) => {
     socketController.editUsers({room_id: data.room_id, users:newUsers})
     io.to(data.room_id).emit('answer-saved',{users: socketController.getUsersFromRoom(data.room_id)})
   })
+
+  // socket.on('')
 
   socket.on('next-video', (room_id) => {
     const currentState = socketController.getStateFromRoom(room_id);

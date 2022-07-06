@@ -29,6 +29,7 @@ class SocketController {
 
     initState(room_id) {
         this.games[room_id] = {...this.games[room_id], state: {
+            alreadyAnswered : 0,
             current_video : 0,
             videos : [
                 {
