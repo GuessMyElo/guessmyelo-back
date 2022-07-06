@@ -31,6 +31,7 @@ module.exports = (app) => {
                         table.json('config').notNullable();
                         table.integer('room_owner').notNullable();
                         table.json('participants').notNullable();
+                        table.json('answers');
                     default:
                         break;
                 }

@@ -1,4 +1,4 @@
-const { getRandomVideos } = require("../functions");
+const { getRandomVideos, saveUserAnswers } = require("../functions");
 
 class SocketController {
     constructor() {
@@ -9,6 +9,7 @@ class SocketController {
 
     getUsersFromRoom(room_id) {
         if (!this.games[room_id]) this.games[room_id] = { users: [], config: {}, state: {} };
+        console.log("getUsersFromRoom",this.games[room_id].users);
         return this.games[room_id].users;
     }
 
@@ -65,6 +66,10 @@ class SocketController {
         const roomInfo  = this.getConfigFromRoom(room_id);
         const state  = this.getStateFromRoom(room_id);
         return {users, roomInfo, state}
+    }
+
+    async saveUserAnswer(room_id, answer) {
+        await saveUserAnswers(room_id, answer);
     }
 }
 
