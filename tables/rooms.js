@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const knex = require("../knex/knex");
 
-module.exports = (app, db) => {
+module.exports = (app) => {
     app.get("/rooms", async (req, res) => {
         try {
           const response = await knex.select().from("rooms");
@@ -15,7 +15,7 @@ module.exports = (app, db) => {
     app.get('/rooms/:id', async (req, res) => {
         const id = req.params.id;
         try {
-          const response = await knex("rooms").where({ id }).select();
+          const response = await knex("rooms").where({ room_id : id }).select();
           res.status(200).send(response[0]);
         } catch (error) {
           console.log(error);
