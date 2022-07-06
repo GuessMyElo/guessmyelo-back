@@ -4,11 +4,8 @@ const fileupload = require("express-fileupload");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
-const mysql = require("mysql");
 const http = require("http")
 const socketController = require("./models/SocketController.Js");
-const video = require("./tables/video");
-const users = require("./tables/users");
 
 const app = express();
 
@@ -142,13 +139,6 @@ io.on('connection', (socket) => {
 
 
 const port = 5000;
-const db = mysql.createPool({
-    connectionLimit: 10,
-    host: "localhost",
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-});
 
 app.enable('trust proxy');
 app.use(cors({
@@ -173,11 +163,11 @@ app.use(session({
     }
 }));
 
-require("./tables/video")(app,db);
-require("./tables/rooms")(app,db);
-require("./tables/users")(app,db);
-require("./tables/rooms")(app,db);
+require("./tables/video")(app);
+require("./tables/rooms")(app);
+require("./tables/users")(app);
+require("./tables/rooms")(app);
 require("./knex/buildDB")(app);
-require("./cloudinary")(app, db);
+require("./cloudinary")(app);
 
 httpServer.listen(port, () => console.log(`Listen on port ${port}`));
