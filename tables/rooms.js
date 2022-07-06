@@ -1,34 +1,35 @@
 const bcrypt = require("bcrypt");
 const { json } = require("express");
+const knex = require("../knex/knex");
 
 module.exports = (app, db) => {
     const getParams = (req) => {
         return {
             room_id: req.body.room_id,
-            config: req.body.config,
+            config_id: req.body.config_id,
             participants: req.body.participants
         }
     }
 
-    app.get('/rooms/:id', (req, res) => {
-        db.getConnection((err, connection) => {
-            if (err) return res.json({ error: true, err });
-            const id = req.params.id;
-            connection.query('SELECT * FROM rooms WHERE room_id = ?', [id], (roomerr, room_info) => {
-                if(roomerr || !room_info[0]) return res.status(404).json({success: false, message: `Can't find room for id ${id}`});
-
-                const participants = room_info[0] ?room_info[0].participants : null;
-                connection.query('SELECT id, username FROM users WHERE id = ?', participants, (participantserr, users) => {
-                    connection.release();
-                    if (participantserr) return res.status(400).json({success: false, message: `Can't find participants for room:  ${id}`});
-
-                    if (!participantserr) {
-                        const { config, room_owner, room_id } = room_info[0];
-                        return res.status(200).json({room_info: {config: JSON.parse(config), participants: JSON.parse(participants), room_id, room_owner}, users});
-                    }
-                })
-            })
-        })
+    app.get("/rooms", async (req, res) => {
+        try {
+          const response = await knex.select().from("rooms");
+          res.status(200).send(response);
+        } catch (error) {
+          console.log(error);
+          res.status(500).send(error);
+        }
+      });
+    
+    app.get('/rooms/:id', async (req, res) => {
+        const id = req.params.id;
+        try {
+          const response = await knex("rooms").where({ id }).select();
+          res.status(200).send(response[0]);
+        } catch (error) {
+          console.log(error);
+          res.status(500).send(error);
+        }
     })
 
     app.post('/rooms/create', (req, res) => {
@@ -46,8 +47,7 @@ module.exports = (app, db) => {
                         })
                         const params = {
                             room_id: hash,
-                            config: JSON.stringify({}),
-                            room_owner: user_id,
+                            config_id: 1,
                             participants: JSON.stringify([user_id])
                         }
 

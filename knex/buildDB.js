@@ -15,12 +15,16 @@ module.exports = (app) => {
                         table.string('email', 191).unique().notNullable();
                         table.string('password');
                         table.string('role').notNullable();
+                        table.string('imageUrl');
                         break;
                     case "video":
                         table.bigincrements("id");
                         table.string("rank").notNullable();
                         table.string("url").notNullable();
                         table.integer("userId").notNullable();
+                        table.string("public_id").notNullable();
+                        table.string("status").notNullable();
+                        table.string("game").notNullable();
                         break;
                     case "rooms":
                         table.string('room_id', 191).unique().notNullable();
@@ -66,7 +70,7 @@ module.exports = (app) => {
         .then(async () => {
             knex.destroy();
 
-            config.connection.database = process.env.DB_NAME;;
+            config.connection.database = process.env.DB_NAME;
             knex = require('knex')(config);
 
             const response = await buildtable(tableName, knex);
@@ -74,7 +78,7 @@ module.exports = (app) => {
         })
         .catch(async (error) => {
             if(error.errno===1007) {
-                config.connection.database = process.env.DB_NAME;;
+                config.connection.database = process.env.DB_NAME;
                 knex = require('knex')(config);
 
                 const response = await buildtable(tableName, knex);
