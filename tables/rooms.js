@@ -18,7 +18,8 @@ module.exports = (app) => {
         try {
           const response = await knex("rooms").where({ room_id : id }).select();
           const participants = JSON.parse(response[0].participants);
-          const users = await knex("users").whereIn("id", participants).select();
+          const users = await knex("users").select().whereIn("id", participants)
+          console.log("ROOMS", participants);
           res.status(200).send({room_info : response[0], users});
         } catch (error) {
           console.log(error);
@@ -56,10 +57,10 @@ module.exports = (app) => {
     app.post('/rooms/update', async (req, res) => {
         const { room_id } = req.body;
         const config = JSON.stringify(req.body.config);
-        const participants = JSON.stringify(req.body.participants);
+        const participants = req.body.participants;
 
         try {
-            await knex("rooms").update({config, participants}).where({room_id})
+            await knex("rooms").update({config, participants: JSON.stringify(participants.map((p) => p.id))}).where({room_id})
             res.status(200).json({success : true})
         } catch (error) {
             res.status(500).send(error);

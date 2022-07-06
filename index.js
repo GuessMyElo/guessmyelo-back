@@ -61,7 +61,6 @@ io.on('connection', (socket) => {
   })
 
   socket.on('request-game', (room_id) => {
-    console.log("request game", room_id, socketController.getGameState(room_id));
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
 
@@ -69,7 +68,6 @@ io.on('connection', (socket) => {
     socketController.initState(data.room_id);
     const currentState = socketController.getStateFromRoom(data.room_id);
     socketController.editState({room_id: data.room_id, state_info: {...currentState, loop: 1, timestamp: new Date().getTime() }});
-    console.log(socketController.getGameState(data.room_id))
     socketController.editConfig(data);
     io.to(data.room_id).emit('game-started', socketController.getGameState(data.room_id))
   })
@@ -81,13 +79,9 @@ io.on('connection', (socket) => {
     const videosRanks = currentState.videos.map(video=>{
       return video.rank;
     })
-    console.log(data.answer,videosRanks[currentState.current_video]);
     if(data.answer === videosRanks[currentState.current_video]){
-      console.log(currentUsers.length, currentState.alreadyAnswered);
        points += currentUsers.length + 1 - currentState.alreadyAnswered;
-       console.log("win");
     }
-    console.log("points:",points);
     let answered = currentState.alreadyAnswered + 1;
 
 
@@ -120,12 +114,10 @@ io.on('connection', (socket) => {
       return user;
     }) })
 
-    console.log(socketController.getUsersFromRoom(room_id));
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
 
   socket.on('reset-user-state', (room_id) => {
-    console.log(room_id)
     const currentUsers = socketController.getUsersFromRoom(room_id);
     const newUsers= currentUsers.map(user =>{
             user.answered = false;
