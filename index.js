@@ -67,7 +67,7 @@ io.on('connection', (socket) => {
   socket.on('start-game',(data) =>{
     socketController.initState(data.room_id);
     const currentState = socketController.getStateFromRoom(data.room_id);
-    socketController.editState({room_id: data.room_id, state_info: {...currentState, loop: 1, timestamp: new Date().getTime() }});
+    socketController.editState({room_id: data.room_id, state_info: {...currentState, step : "game", loop: 1, timestamp: new Date().getTime() }});
     socketController.editConfig(data);
     io.to(data.room_id).emit('game-started', socketController.getGameState(data.room_id))
   })
@@ -126,7 +126,6 @@ io.on('connection', (socket) => {
     socketController.editUsers({room_id, users:newUsers})
     io.to(room_id).emit('user-state-reseted', {users: socketController.getUsersFromRoom(room_id)});
   })
-  
 });
 
 
