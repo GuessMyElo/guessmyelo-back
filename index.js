@@ -169,9 +169,10 @@ app.use(session({
 }));
 
 require("./tables/video")(app,db);
+require("./tables/rooms")(app,db);
 require("./tables/users")(app,db);
 require("./tables/rooms")(app,db);
 require("./knex/buildDB")(app);
-require("./cloudinary")(app);
+require("./cloudinary")(app, db);
 
 httpServer.listen(port, () => console.log(`Listen on port ${port}`));
