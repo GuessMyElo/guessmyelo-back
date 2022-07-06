@@ -61,7 +61,6 @@ module.exports = (app) => {
     if (token.includes("Bearer")) {
       token = token.split(" ")[1];
     }
-
     if (!token) return res.status(401).send("Aucun jeton fourni.");
 
     

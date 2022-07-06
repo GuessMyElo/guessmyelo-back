@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const { json } = require("express");
 const knex = require("../knex/knex");
 
 module.exports = (app, db) => {
@@ -29,21 +30,6 @@ module.exports = (app, db) => {
           console.log(error);
           res.status(500).send(error);
         }
-        // db.getConnection((err, connection) => {
-        //     if (err) res.json({ error: true, err });
-        //     else {
-        //         const id = req.params.id;
-        //         connection.query('SELECT * FROM rooms WHERE room_id = ?', [id], (err, room_info) => {
-        //             const participants = JSON.parse(room_info[0].participants);
-        //             connection.query('SELECT id, username FROM users WHERE id IN (?)', [participants], (err, users) => {
-        //                 connection.release();
-        //                 if (!err) {
-        //                     res.status(200).json({room_info, users});
-        //                 }
-        //             })
-        //         })
-        //     }           
-        // })
     })
 
     app.post('/rooms/create', (req, res) => {
@@ -67,9 +53,11 @@ module.exports = (app, db) => {
 
                         connection.query('INSERT INTO rooms SET ?', params, (err, results) => {
                             connection.release();
+                            console.log(err)
                             if (!err) {
-                                res.status(200).json({ room_id: hash });
+                                return res.status(200).json({ room_id: hash });
                             }
+                            return res.status(400);
                         })
                     }
                 })
@@ -77,5 +65,22 @@ module.exports = (app, db) => {
         })    
     })
 
-    app.put("")
+    app.post('/rooms/update', (req, res) => {
+        db.getConnection((err, connection) => {
+            if (err) res.json({ error: true, err });
+            else {
+                const { room_id } = req.body;
+                const config = JSON.stringify(req.body.config);
+                const participants = JSON.stringify(req.body.participants);
+
+                connection.query('UPDATE rooms SET config = ?, participants = ? WHERE room_id = ?', [config, participants, room_id], (err, results) => {
+                    connection.release();
+                    if (!err) {
+                        return res.status(200).json({success: true});
+                    }
+                    return res.status(400);
+                })
+            }
+        })    
+    })
 }
