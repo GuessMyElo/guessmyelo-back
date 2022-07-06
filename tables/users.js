@@ -128,11 +128,11 @@ module.exports = (app) => {
           .status(401)
           .json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
 
-      const user = response[0];
+      const {password, ...user} = response[0];
 
       const isPasswordCorrect = bcrypt.compareSync(
         params.password,
-        user.password
+        password
       );
 
       if (!isPasswordCorrect)
@@ -140,7 +140,7 @@ module.exports = (app) => {
           .status(401)
           .json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
 
-      const accessToken = getAccessToken(user);
+      const accessToken = getAccessToken({...user});
       res.status(200).json({ user, accessToken });
     } catch (error) {
       console.log(error);
