@@ -2,14 +2,11 @@ const { getRandomVideos, saveUserAnswers } = require("../functions");
 
 class SocketController {
     constructor() {
-        //id room_id reponse
-
         this.games = {}
     }
 
     getUsersFromRoom(room_id) {
         if (!this.games[room_id]) this.games[room_id] = { users: [], config: {}, state: {} };
-        console.log("getUsersFromRoom",this.games[room_id].users);
         return this.games[room_id].users;
     }
 
@@ -68,7 +65,7 @@ class SocketController {
         return {users, roomInfo, state}
     }
 
-    async saveUserAnswer(room_id, answer) {
+    async saveUserAnswers(room_id, answer) {
         await saveUserAnswers(room_id, answer);
     }
 }

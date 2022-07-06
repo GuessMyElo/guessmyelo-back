@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const http = require("http")
 const socketController = require("./models/SocketController.Js");
-const {getUserAnswers} = require("./functions.js")
+const {saveUserAnswers, getUserAnswers} = require("./functions.js")
 
 const app = express();
 
@@ -77,28 +77,19 @@ io.on('connection', (socket) => {
   socket.on('save-answer',(data) => {
     const currentState = socketController.getStateFromRoom(data.room_id);
     const currentUsers = socketController.getUsersFromRoom(data.room_id);
-    // let points = 0;
-    // const videosRanks = currentState.videos.map(video=>{
-    //   return video.rank;
-    // })
-    // if(data.answer === videosRanks[currentState.current_video]){
-    //    points += currentUsers.length + 1 - currentState.alreadyAnswered;
-    // }
     let answered = currentState.alreadyAnswered + 1;
 
 
     const newUsers= currentUsers.map(user =>{
         if(user.id === data.user_id){
             if (!user.answers) user.answers = [];
-            user.answers.push({answer:data.answer, timestamp:new Date().getTime()})
+            user.answers[currentState.current_video] = {answer:data.answer, timestamp:new Date().getTime()};
             user.answered = true;
-            // user.points = points;
         }
         return user;
     })
     socketController.editState({room_id: data.room_id, state_info: {...currentState, alreadyAnswered:answered}});
     socketController.editUsers({room_id: data.room_id, users:newUsers})
-    // console.log("getUserFromRoom: ",socketController.getUsersFromRoom(data.room_id));
     io.to(data.room_id).emit('answer-saved',{users: socketController.getUsersFromRoom(data.room_id)})
   })
 
@@ -107,7 +98,6 @@ io.on('connection', (socket) => {
     let currentUsers = socketController.getUsersFromRoom(room_id);
 
     const userAnswers = JSON.parse(await getUserAnswers(room_id));
-    console.log("FETCH ANSWERS : ",userAnswers);
     const videosRanks = currentState.videos.map(video=>{
       return video.rank;
     })
@@ -120,24 +110,20 @@ io.on('connection', (socket) => {
     // On parcoure les réponses des vidéos
     videosRanks.map((rank, index) => {
       // On parcourt les réponses des utilisateurs
-      console.log("RANK : ", rank);
       
+      const timestamps = Object.entries(userAnswers).filter(([, answers]) => answers[index] !== null ? answers[index].answer === rank : false).map(([userId, answersList]) => {
+        return {userId, timestamp : answersList[index].timestamp};
+      }).sort((a, b) => a.timestamp - b.timestamp);
+
       Object.entries(userAnswers).map(([userId, answers]) => {
         // Si la réponse de l'utilisateur est correcte
-        const timestamps = answers.map((e) => ({userId, timestamp : e.timestamp})).sort((a, b) => b.timestamp - a.timestamp);
-        console.log("TIMESTAMPS ", timestamps);
-
-        if (answers[index].answer === rank) {
-          console.log("FOUND");
-          const bonusPoints = timestamps.findIndex((e) => {
-            console.log(e.userId);
-            console.log(userId);
-            console.log(e.userId === userId);
+        if (answers[index] !== null && answers[index].answer === rank) {
+          const timestampIndex = timestamps.findIndex((e) => {
             return e.userId === userId
-          });
-          console.log(userId," BONUS ", bonusPoints);
+          })
+          const bonusPoints = currentUsers.length - timestampIndex;
           currentUsers = currentUsers.map(user => {
-            if(user.id === userId) user.points += 3 + bonusPoints;
+            if(user.id === parseInt(userId)) user.points += bonusPoints;
             return user;
           })
         }
@@ -173,15 +159,14 @@ io.on('connection', (socket) => {
     io.to(room_id).emit('user-state-reseted', {users: socketController.getUsersFromRoom(room_id)});
   })
 
-  socket.on('handle-user-answer', (room_id) => {
+  socket.on('handle-user-answer', async (room_id) => {
     const currentUsers = socketController.getUsersFromRoom(room_id);
     const answers = {};
-    console.log("CURRENT USERS ", currentUsers);
     currentUsers.map((user) => {
       answers[user.id] = user.answers;
     })
 
-    socketController.saveUserAnswers(room_id, JSON.stringify(answers));
+    await saveUserAnswers(room_id, JSON.stringify(answers));
     io.to(room_id).emit('get-user-answer', {users: socketController.getUsersFromRoom(room_id)});
   })
   
