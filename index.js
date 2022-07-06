@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
     const newState = {
       ...currentState, 
       loop: currentState.loop + 1, 
-      timestamp: new Date().getTime() 
+      timestamp: new Date().getTime()
     }
     socketController.editState({room_id, state_info: newState});
     io.to(room_id).emit('loop-started', socketController.getStateFromRoom(room_id));
@@ -64,11 +64,12 @@ io.on('connection', (socket) => {
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
 
-  socket.on('start-game',(data) =>{
-    socketController.initState(data.room_id);
+  socket.on('start-game', async (data) =>{
+    socketController.editConfig(data);
+    await socketController.initState(data.room_id);
     const currentState = socketController.getStateFromRoom(data.room_id);
     socketController.editState({room_id: data.room_id, state_info: {...currentState, loop: 1, timestamp: new Date().getTime() }});
-    socketController.editConfig(data);
+    console.log("OKOKOKOKOKOKOKOKOKOKO", data)
     io.to(data.room_id).emit('game-started', socketController.getGameState(data.room_id))
   })
 
