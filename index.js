@@ -171,7 +171,10 @@ io.on('connection', (socket) => {
     await saveUserAnswers(room_id, JSON.stringify(answers));
     io.to(room_id).emit('get-user-answer', {users: socketController.getUsersFromRoom(room_id)});
   })
-  
+
+  socket.on('delete-room', (room_id) => {
+    socketController.deleteRoom(room_id);
+  })
 });
 
 
