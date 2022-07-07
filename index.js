@@ -9,13 +9,12 @@ const {saveUserAnswers, getUserAnswers} = require("./functions.js")
 
 const app = express();
 
-
 const httpServer = http.createServer(app);
 const io = require("socket.io")(httpServer, {
   pingInterval: 25000,
   pingTimeout: 90000,
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.ORIGIN,
     methods: ["GET", "POST"]
   }
 });
@@ -174,7 +173,7 @@ io.on('connection', (socket) => {
 
 
 
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 app.enable('trust proxy');
 app.use(cors({
