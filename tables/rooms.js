@@ -19,7 +19,6 @@ module.exports = (app) => {
           const response = await knex("rooms").where({ room_id : id }).select();
           const participants = JSON.parse(response[0].participants);
           const users = await knex("users").select().whereIn("id", participants)
-          console.log("ROOMS", participants);
           res.status(200).send({room_info : response[0], users});
         } catch (error) {
           console.log(error);
