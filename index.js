@@ -133,16 +133,20 @@ io.on('connection', (socket) => {
   })
 
   socket.on('next-video', (room_id) => {
+    const timestamp = new Date().getTime();
     const currentState = socketController.getStateFromRoom(room_id);
-    socketController.editState({room_id, state_info : {...currentState, loop : 1, timestamp : new Date().getTime(), current_video : currentState.current_video + 1}})
-    const users = socketController.getUsersFromRoom(room_id);
-    socketController.editUsers({ room_id, users: users.map((user) => {
-      if (!user.answers) user.answers = [];
-      if (!user.answers[currentState.current_video]) {
-        user.answers.push(null);
-      }
-      return user;
-    }) })
+    if(!currentState.nextVideoTimestamp || timestamp - currentState.nextVideoTimestamp > 5000) {
+      socketController.editState({room_id, state_info : {...currentState, loop : 1, timestamp : new Date().getTime(), current_video : currentState.current_video + 1, nextVideoTimestamp : timestamp}})
+      const users = socketController.getUsersFromRoom(room_id);
+      socketController.editUsers({ room_id, users: users.map((user) => {
+        if (!user.answers) user.answers = [];
+        if (!user.answers[currentState.current_video]) {
+          user.answers.push(null);
+        }
+        return user;
+        })
+      })
+    }
 
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
