@@ -88,7 +88,7 @@ io.on('connection', (socket) => {
     })
     socketController.editState({room_id: data.room_id, state_info: {...currentState, alreadyAnswered:answered}});
     socketController.editUsers({room_id: data.room_id, users:newUsers})
-    io.to(data.room_id).emit('answer-saved',{users: socketController.getUsersFromRoom(data.room_id), answer: data.answer})
+    io.to(data.room_id).emit('answer-saved',{id : data.user_id, users: socketController.getUsersFromRoom(data.room_id), answer: data.answer})
   })
 
   socket.on('calcul-point',async (room_id) =>{
