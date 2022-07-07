@@ -65,6 +65,10 @@ class SocketController {
         return {users, roomInfo, state}
     }
 
+    deleteRoom(room_id) {
+        delete this.games[room_id];
+    }
+
     async saveUserAnswers(room_id, answer) {
         await saveUserAnswers(room_id, answer);
     }

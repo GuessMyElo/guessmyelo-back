@@ -88,7 +88,7 @@ io.on('connection', (socket) => {
     })
     socketController.editState({room_id: data.room_id, state_info: {...currentState, alreadyAnswered:answered}});
     socketController.editUsers({room_id: data.room_id, users:newUsers})
-    io.to(data.room_id).emit('answer-saved',{users: socketController.getUsersFromRoom(data.room_id)})
+    io.to(data.room_id).emit('answer-saved',{id : data.user_id, users: socketController.getUsersFromRoom(data.room_id), answer: data.answer})
   })
 
   socket.on('calcul-point',async (room_id) =>{
@@ -133,16 +133,20 @@ io.on('connection', (socket) => {
   })
 
   socket.on('next-video', (room_id) => {
+    const timestamp = new Date().getTime();
     const currentState = socketController.getStateFromRoom(room_id);
-    socketController.editState({room_id, state_info : {...currentState, loop : 1, timestamp : new Date().getTime(), current_video : currentState.current_video + 1}})
-    const users = socketController.getUsersFromRoom(room_id);
-    socketController.editUsers({ room_id, users: users.map((user) => {
-      if (!user.answers) user.answers = [];
-      if (!user.answers[currentState.current_video]) {
-        user.answers.push(null);
-      }
-      return user;
-    }) })
+    if(!currentState.nextVideoTimestamp || timestamp - currentState.nextVideoTimestamp > 5000) {
+      socketController.editState({room_id, state_info : {...currentState, loop : 1, timestamp : new Date().getTime(), current_video : currentState.current_video + 1, nextVideoTimestamp : timestamp}})
+      const users = socketController.getUsersFromRoom(room_id);
+      socketController.editUsers({ room_id, users: users.map((user) => {
+        if (!user.answers) user.answers = [];
+        if (!user.answers[currentState.current_video]) {
+          user.answers.push(null);
+        }
+        return user;
+        })
+      })
+    }
 
     io.to(room_id).emit('game-data', socketController.getGameState(room_id));
   })
@@ -167,7 +171,10 @@ io.on('connection', (socket) => {
     await saveUserAnswers(room_id, JSON.stringify(answers));
     io.to(room_id).emit('get-user-answer', {users: socketController.getUsersFromRoom(room_id)});
   })
-  
+
+  socket.on('delete-room', (room_id) => {
+    socketController.deleteRoom(room_id);
+  })
 });
 
 

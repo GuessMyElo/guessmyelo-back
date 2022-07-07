@@ -14,6 +14,7 @@ module.exports = (app) => {
       email: req.body.email,
       password: req.body.password,
       role: req.body.role,
+      imageUrl: req.body.imageUrl
     };
   };
 
