@@ -3,7 +3,6 @@ const express = require("express");
 const fileupload = require("express-fileupload");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const session = require("express-session");
 const http = require("http")
 const socketController = require("./models/SocketController.Js");
 const {saveUserAnswers, getUserAnswers} = require("./functions.js")
@@ -188,17 +187,6 @@ app.use(express.static("files"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));
-app.use(session({
-    key: "session",
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true,
-        secure: process.env.ENVIRONMENT!=="dev",
-        maxAge: 1000 * 60 * 60 * 24 //1000 = 1 seconde
-    }
-}));
 
 require("./tables/video")(app);
 require("./tables/rooms")(app);
