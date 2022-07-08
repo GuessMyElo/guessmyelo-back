@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const knex = require("./knex/knex");
 
-const getAccessToken = (user) => {
+const getAccessToken = ({...user}) => {
   return jwt.sign(user, process.env.JWT_SECRET);
 };
 
