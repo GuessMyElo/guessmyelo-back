@@ -13,6 +13,15 @@ module.exports = (app) => {
     }
   });
   
+  app.get("/video/notverified", async (req, res) => {
+    try {
+      const response = await knex("video").select().where({status : "not verified"});
+      res.status(200).send(response);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  })
+  
   app.get("/video/random/:limit", async (req, res) => {
     const limit = req.params.limit;
     try {
